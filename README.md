@@ -2,6 +2,8 @@
 
 Python 3.8 or later with all [requirements.txt](https://github.com/ultralytics/yolov3/blob/master/requirements.txt) dependencies installed, including `torch>=1.7`. To install run:
 ```bash
+$ conda create -n find_phone python=3.8
+$ conda activate find_phone
 $ pip install -r requirements.txt
 ```
 
@@ -11,7 +13,8 @@ to use the object detection algorithm YOLO which locates and detects objects in 
 around the identified object which I then use to calculate the normalized coordinates of the center of the cellphone.
 A high level explanation of the algorithm can be found here: [link](https://thebinarynotes.com/yolo-realtime-object-detection/) 
 
-I used [ultralytics](https://github.com/ultralytics/yolov3) pytorch implementation as the base of my code. Their model 
+I used [ultralytics](https://github.com/ultralytics/yolov3) pytorch implementation as the base of my code. 
+The majority of my contribution is on find_phone.py to use the various modules to achieve the given task. Their model 
 is pretrained with the ImageNet dataset which contains cell phone as one of their classes. Due to time constraints
 I chose to use their pretrained model rather than training my own class. Some considerations when training the class
 would be to use data augmentation tricks such as random crops, rotations, and shifts to make up for the small dataset. 
@@ -33,10 +36,11 @@ phone screen is the darkest part of the image. If this were the expected case, w
 observed area for example. 
 
 ## Results
-Achieved 88.4% accuracy on a 0.05 normalized-radius-error threshold in the provided dataset.
+Achieved 88.4% accuracy in the provided dataset. Correct localizations are within a 0.05 normalized radius of the true location.
 
 
 ## Citation
+Ultralytics repo: https://github.com/ultralytics/yolov3
 
 Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." Proceedings of the IEEE conference on computer vision and pattern recognition. 2016.
 

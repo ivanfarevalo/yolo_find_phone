@@ -1,22 +1,23 @@
+'''The main obejctive is to find a way to locate the center of a cell phone in an image. The approach I chose was to
+use the object detection algorithm YOLO which locates and detects objects in images. It outputs bounding boxes around
+the identified object which I then use to calculate the normalized coordinates of the center of the cellphone. Base
+code from ultralytics'''
+
 import argparse
 import math
-import time
 import os
 import torch
 
 from models.experimental import attempt_load
 from utils.datasets import LoadImages
-
 from utils.general import check_img_size, non_max_suppression, check_requirements
 
 
 def inference():
     source, weights, imgsz = opt.source, opt.weights, opt.img_size
-    # device = select_device(opt.device)
 
-    ## Just use CPU for inference
+    # Just use CPU for inference
     device=torch.device('cpu')
-    ##
 
     # Load model
     model = attempt_load(weights, map_location=device)
@@ -29,7 +30,6 @@ def inference():
     # Run inference
     if device.type != 'cpu':
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
-    t0 = time.time()
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
         img = img.float()  # uint8 to fp16/32
@@ -44,6 +44,7 @@ def inference():
         pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, classes=opt.classes,
                                    agnostic=opt.agnostic_nms)
 
+        # Compute object center in normalized coordinates
         try:
             x_coord = ((pred[0][0, 0] + pred[0][0, 2]) / 2) / img.size()[3]
             y_coord = ((pred[0][0, 1] + pred[0][0, 3]) / 2) / img.size()[2]
@@ -63,18 +64,21 @@ def test():
     assert os.path.isfile(opt.labels_path), "labels file does not exist"
     print(f"Testing directory {opt.source}\n")
 
+    # Read labels file and sort according to image number
     file = open(opt.labels_path)
     labels = file.readlines()
-    labels.sort(key=sort_labels)  # Sort by image id
+    labels.sort(key=sort_labels)
     file.close()
     inference()
 
+    # Sort results by image number
     results.sort(key=sort_labels)  # Sort by image id
 
-    # Calculate accuracy
+    # Calculate accuracy within a 0.05 maximum error
     assert len(results) == len(labels), "Number of labels and images does not match"
     epsilon = 0.05
     accuracy = 0
+
     for i in range(len(results)):
         p = results[i].split(' ')
         l = labels[i].split(' ')
@@ -86,6 +90,7 @@ def test():
 
         if math.sqrt(((float(p[1]) - float(l[1])) ** 2) + ((float(p[2]) - float(l[2])) ** 2)) < epsilon:
             accuracy += 1
+
     accuracy /= len(results)
 
     print(f"Directory: {opt.source} \n"
